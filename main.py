@@ -8,7 +8,4 @@ df.drop('SalePrice', axis = 1)
 
 from sklearn.preprocessing import RobustScaler
 
-df_object = df.select_dtypes(include = 'object')
-df_float64 = df.select_dtypes(include = 'float64')
-df_int64 = df.select_dtypes(include = 'int64')
 
