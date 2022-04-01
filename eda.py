@@ -39,7 +39,7 @@ for col in df.columns:
 print('\nWe see that there are a lot of collomns with null values.')
 print('Of these, ', numberic_with_null,' are numeric.')
 print('LotFrontage and MasVnrArea are values that can be interpolated.')
-print('missing GarageYrBlt is an int but should be "none" as they corrispond to no guarage.\n')
+print('missing GarageYrBlt is an int but should be "none" as they corrispond to no Garage. We will put to zero\n')
 
 print('To study LotFrontage and MasVnrArea, we examine their corillations\n')
 
@@ -63,6 +63,18 @@ plt.show()
 print('\nWe see that both are correlated with several other quantities.')
 print('Hence we can predict the missing values from a predictive model using these correlations.')
 print('We could also just drop the entries that are missing MasVnrArea\n\n')
+
+df['GarageYrBlt'].hist()
+
+df.loc[(df['MasVnrType'] == 'None') , 'MasVnrArea' ] = 0
+df.loc[(df['GarageType'] == 'None') , 'GarageArea' ] = 0
+df.loc[(df['GarageType'] == 'None') , 'GarageCars' ] = 0
+df.loc[(df['GarageType'] == 'None') , 'GarageYrBlt' ] = 0
+
+df['GarageYrBlt'].hist()
+plt.show()
+
+print('\n') 
 
 fig1 = plt.figure()
 plt.bar(columns_with_null,numbers_of_null,color = colours_for_plot)
