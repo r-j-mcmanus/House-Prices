@@ -308,16 +308,85 @@ if __name__ == '__main__':
 
 #print('there has to be a better way to do this...')
 
-def categorical_feature_minipulation(df):
+def Qual_str_to_int_dict_foo(df, col):
+	my_dict =  {
+		'None' : 0,
+		'Po' : df[ df['SalePrice'].notna() & (df[col] == 'Po') ]['SalePrice'].median(),
+		'Fa' : df[ df['SalePrice'].notna() & (df[col] == 'Fa') ]['SalePrice'].median(),
+		'TA' : df[ df['SalePrice'].notna() & (df[col] == 'TA') ]['SalePrice'].median(),
+		'Gd' : df[ df['SalePrice'].notna() & (df[col] == 'Gd') ]['SalePrice'].median(),
+		'Ex' : df[ df['SalePrice'].notna() & (df[col] == 'Ex') ]['SalePrice'].median()
+	}
+
+	max_val = max(my_dict.values())
+
+	for key in my_dict.keys():
+		my_dict[key] = my_dict[key] / max_val
+
+	return my_dict
+
+def categorical_feature_minipulation(df, LandContour_Combine=False):
 	df = df.replace('C (all)', 'C')
 
-	#print('\n\nCondition2 values\n',df['Condition2'].value_counts(),'\n\n')
-	#print('\n\nCondition2 dummied\n',pd.get_dummies(df[['LotArea','Condition2']]).columns,'\n\n')
+	#We change features that are catigorical but should be numeric
+	#note that we change them into a linear series, but there is no guarantee that they are linearly related to the sale price
+	#maybe replcae with the mean sale price for that category?
+
+	Qual_str_to_int_dict = {
+		'None' : 0,
+		'Po' : 1,
+		'Fa' : 2,
+		'TA' : 3,
+		'Gd' : 4,
+		'Ex' : 5,
+	}
+
+	Fence_str_to_int_dict = {
+		'None' : 0,
+		'MnWw' : 1,
+		'GdWo' : 2,
+		'MnPrv' : 3,
+		'GdPrv' : 4
+	}
+
+	BsmtExposure_str_to_int_dict = {
+		'None' : 0,
+		'No' : 1,
+		'Mn' : 2,
+		'Av' : 3,
+		'Gd' : 4
+	}
+
+	GarageFinish_str_to_int_dict = {
+		'None' : 0,
+		'Unf' : 1,
+		'RFn' : 2,
+		'Fin' : 3
+	}
+
+	#print( Qual_str_to_int_dict_foo(df, 'ExterQual') )
+
+	to_change = ['ExterQual','ExterCond','BsmtCond','HeatingQC','KitchenQual','FireplaceQu','GarageQual','GarageCond','PoolQC','BsmtQual']
+	for col in to_change:
+		df[col] = df[col].apply(lambda x : Qual_str_to_int_dict[x])
+
+	df['Fence'] = df['Fence'].apply(lambda x : Fence_str_to_int_dict[x])
+	df['BsmtExposure'] = df['BsmtExposure'].apply(lambda x : BsmtExposure_str_to_int_dict[x])
+	df['GarageFinish'] = df['GarageFinish'].apply(lambda x : GarageFinish_str_to_int_dict[x])
+
+
+	#We change features that are numeric but should be catigorical
+
+	df['MoSold_str'] = df['MoSold'].apply(lambda x : str(x))
+	df = df.drop('MoSold', axis = 1)
+
+	df['MSSubClass_str'] = df['MSSubClass'].apply(lambda x : str(x))
+	df = df.drop('MSSubClass', axis = 1)
+
+	#We split the categorical data
+	#we combine small categories as they do not contain much information
 
 	df = pd.get_dummies(df)
-	print('len(df.columns)',len(df.columns))
-
-	LandContour_Combine=False
 
 	df['GarageType_Other'] = (df['GarageType_2Types'] == 1) | (df['GarageType_CarPort'] == 1) | (df['GarageType_Basment'] == 1)
 	df['GarageType_Other'] = df['GarageType_Other'].astype(int)
@@ -353,14 +422,16 @@ def categorical_feature_minipulation(df):
 	df['RoofMatl_Other'] = df['RoofMatl_Other'].astype(int)
 	df = df.drop(['RoofMatl_Metal', 'RoofMatl_Membran', 'RoofMatl_Roll','RoofMatl_ClyTile'], axis = 1)
 
-	df = df.drop('BsmtCond_Po', axis = 1)
-	df = df.drop('HeatingQC_Po', axis = 1)
 	df = df.drop('Electrical_Mix', axis = 1)
 	df = df.drop('Functional_Sev', axis = 1)
 
 	df['MiscFeature_Othr'] = (df['MiscFeature_Othr'] == 1) | (df['MiscFeature_TenC'] == 1) 
 	df = df.drop('MiscFeature_TenC', axis = 1)
 
-	print('len(df.columns)',len(df.columns))
+	df = df.drop('CentralAir_N', axis = 1)
+	df = df.drop('PavedDrive_N', axis = 1)
+	df = df.drop('Alley_None', axis = 1)
+
+	#print('len(df.columns)',len(df.columns))
 	
 	return df
